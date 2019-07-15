@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     cmd_set_sleep(0)
     output = []
-    for t in range(15):
+    for t in range(30):
         values = cmd_query_data();
         # does not include first 3 readings as fan has just been turned on
         if values is not None and len(values) == 2 and t > 2:
