@@ -114,49 +114,40 @@ if __name__ == "__main__":
     cmd_firmware_ver()
     cmd_set_working_period(PERIOD_CONTINUOUS)
     cmd_set_mode(MODE_QUERY);
-    while True:
-        cmd_set_sleep(0)
-        output = []
-        for t in range(15):
-            values = cmd_query_data();
-	    # does not include first 3 readings as fan has just been turned on
-            if values is not None and len(values) == 2 and t > 2:
-              print("PM2.5: ", values[0], ", PM10: ", values[1])
-              output.append(values)
-              time.sleep(2)
+
+    cmd_set_sleep(0)
+    output = []
+    for t in range(15):
+        values = cmd_query_data();
+        # does not include first 3 readings as fan has just been turned on
+        if values is not None and len(values) == 2 and t > 2:
+            print("PM2.5: ", values[0], ", PM10: ", values[1])
+            output.append(values)
+            time.sleep(2)
 	# calculate mean and standard deviations
-	output = np.array(output)
-	print(np.shape(output))
-	mean_pm25 = np.mean(output[:,0])
-	std_pm25 = np.std(output[:,0])
-	mean_pm10 = np.mean(output[:,1])
-	std_pm10 = np.std(output[:,1])
-	length_output = np.shape(output)[0]
+    output = np.array(output)
+    mean_pm25 = np.mean(output[:,0])
+    std_pm25 = np.std(output[:,0])
+    mean_pm10 = np.mean(output[:,1])
+    std_pm10 = np.std(output[:,1])
+    length_output = np.shape(output)[0]
 
+    # open stored data
+    try:
+        with open(JSON_FILE) as json_data:
+            data = json.load(json_data)
+    except IOError as e:
+        data = []
 
-        # open stored data
-        try:
-            with open(JSON_FILE) as json_data:
-                data = json.load(json_data)
-        except IOError as e:
-            data = []
+    # append new values
+    jsonrow = {'pm25': mean_pm25, 'pm25_std': std_pm25, 'pm10': mean_pm10, 'pm10_std': std_pm10, 'num_points': length_output, 'time': time.strftime("%d.%m.%Y %H:%M:%S")}
+    data.append(jsonrow)
 
-        # check if length is more than 100 and delete first element
-        if len(data) > 100:
-            data.pop(0)
-
-        # append new values
-        jsonrow = {'pm25': mean_pm25, 'pm25_std': std_pm25, 'pm10': mean_pm10, 'pm10_std': std_pm10, 'num_points': length_output, 'time': time.strftime("%d.%m.%Y %H:%M:%S")}
-        data.append(jsonrow)
-	print(jsonrow)
-
-        # save it
-        with open(JSON_FILE, 'w') as outfile:
-            json.dump(data, outfile)
-
-        if MQTT_HOST != '':
-            pub_mqtt(jsonrow)
+    # save it
+    with open(JSON_FILE, 'w') as outfile:
+        json.dump(data, outfile)
+    if MQTT_HOST != '':
+        pub_mqtt(jsonrow)
             
-        print("Going to sleep for 14 min...")
-        cmd_set_sleep(1)
-        time.sleep(14*60)
+    print("Done")
+    cmd_set_sleep(1)
