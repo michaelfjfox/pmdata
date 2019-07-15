@@ -157,6 +157,6 @@ if __name__ == "__main__":
         if MQTT_HOST != '':
             pub_mqtt(jsonrow)
             
-        print("Going to sleep for 15 min...")
+        print("Going to sleep for 14 min...")
         cmd_set_sleep(1)
-        time.sleep(15*60)
+        time.sleep(14*60)
