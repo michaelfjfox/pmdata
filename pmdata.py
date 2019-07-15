@@ -117,14 +117,17 @@ if __name__ == "__main__":
 
     cmd_set_sleep(0)
     output = []
-    for t in range(30):
+    inittime = time.time()
+    for t in range(33):
         values = cmd_query_data();
         # does not include first 3 readings as fan has just been turned on
         if values is not None and len(values) == 2 and t > 2:
             print("PM2.5: ", values[0], ", PM10: ", values[1])
             output.append(values)
             time.sleep(2)
-	# calculate mean and standard deviations
+    finaltime = time.time()
+    measuretime = finaltime-inittime
+    # calculate mean and standard deviations
     output = np.array(output)
     mean_pm25 = np.mean(output[:,0])
     std_pm25 = np.std(output[:,0])
@@ -140,7 +143,7 @@ if __name__ == "__main__":
         data = []
 
     # append new values
-    jsonrow = {'pm25': mean_pm25, 'pm25_std': std_pm25, 'pm10': mean_pm10, 'pm10_std': std_pm10, 'num_points': length_output, 'time': time.strftime("%d.%m.%Y %H:%M:%S")}
+    jsonrow = {'pm25': mean_pm25, 'pm25_std': std_pm25, 'pm10': mean_pm10, 'pm10_std': std_pm10, 'num_points': length_output, 'time': time.strftime("%d.%m.%Y %H:%M:%S"), 'measurement_time': measuretime}
     data.append(jsonrow)
 
     # save it
